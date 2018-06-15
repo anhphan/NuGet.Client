@@ -14,8 +14,6 @@ namespace NuGet.Commands
 {
     public class RestoreSummary
     {
-        private delegate void LogString(string s);
-
         public bool Success { get; }
 
         public bool NoOpRestore { get; }
@@ -94,14 +92,16 @@ namespace NuGet.Commands
                         restoreSummary,
                         LogLevel.Warning,
                         string.Format(CultureInfo.CurrentCulture, Strings.Log_WarningSummary, restoreSummary.InputPath),
-                        logger.LogWarning);
+                        logger.LogWarning,
+                        logger.LogInformation);
 
                     // log errors
                     LogToConsole(
                         restoreSummary,
                         LogLevel.Error,
                         string.Format(CultureInfo.CurrentCulture, Strings.Log_ErrorSummary, restoreSummary.InputPath),
-                        logger.LogError);
+                        logger.LogError,
+                        logger.LogInformation);
                 }
             }
 
@@ -154,7 +154,12 @@ namespace NuGet.Commands
             }
         }
 
-        private static void LogToConsole(RestoreSummary restoreSummary, LogLevel logLevel, string logHeading, LogString log)
+        private static void LogToConsole(
+            RestoreSummary restoreSummary,
+            LogLevel logLevel,
+            string logHeading,
+            Action<string> log,
+            Action<string> logSeparator)
         {
             var logs = restoreSummary
                         .Errors
@@ -163,7 +168,7 @@ namespace NuGet.Commands
 
             if (logs.Count > 0)
             {
-                log(string.Empty);
+                logSeparator(string.Empty);
                 log(logHeading);
                 foreach (var error in logs)
                 {
